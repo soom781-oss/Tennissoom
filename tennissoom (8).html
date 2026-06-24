@@ -1,0 +1,768 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tennissoom — Court Diary</title>
+  <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{background:#FDF6F0;color:#1E1008;font-family:'Inter',system-ui,sans-serif}
+    .nav{position:sticky;top:0;z-index:100;background:rgba(253,246,240,0.94);backdrop-filter:blur(8px);border-bottom:1px solid #EDD5C0;padding:0 40px;height:56px;display:flex;align-items:center;justify-content:space-between}
+    .logo{font-family:'Oswald',sans-serif;font-size:18px;font-weight:700;letter-spacing:.06em;color:#1E1008;cursor:pointer}
+    .nav-links{display:flex;gap:28px}
+    .nl{font-size:11px;font-weight:600;letter-spacing:.15em;text-transform:uppercase;color:#B08070;cursor:pointer;padding-bottom:3px;border-bottom:2px solid transparent;transition:all .2s}
+    .nl:hover,.nl.active{color:#8B2C00;border-bottom:3px solid #8B2C00}
+    .hero{position:relative;min-height:88vh;display:flex;flex-direction:column;justify-content:center;align-items:center;overflow:hidden;padding:60px 40px;background:#FDF6F0}
+    .court-bg{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+    .ball-deco{position:absolute;border-radius:50%;background:#F0A060}
+    .hero-content{position:relative;z-index:1;text-align:center;max-width:640px}
+    .hero-title{font-family:'Oswald',sans-serif;font-size:clamp(60px,12vw,108px);font-weight:700;line-height:.92;letter-spacing:-.01em;color:#1E1008;margin-bottom:28px}
+    .hero-title em{color:#C94E1A;font-style:normal}
+    .hero-sub{color:#B08070;font-size:15px;line-height:1.7;font-weight:300;max-width:380px;margin:0 auto}
+    .scroll-hint{position:absolute;bottom:28px;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:6px}
+    .scroll-hint span{font-size:9px;color:#D4A890;letter-spacing:.2em;text-transform:uppercase}
+    .scroll-line{width:1px;height:36px;background:linear-gradient(to bottom,#D4A890,transparent)}
+    .section{padding:80px 40px;max-width:900px;margin:0 auto}
+    .alt-section{background:#fff;padding:80px 0}
+    .alt-inner{max-width:900px;margin:0 auto;padding:0 40px}
+    .set-label{font-family:'Oswald',sans-serif;font-size:10px;font-weight:600;letter-spacing:.25em;color:#C94E1A;text-transform:uppercase;display:flex;align-items:center;gap:16px;margin-bottom:44px}
+    .set-label::after{content:'';flex:1;height:1px;background:#EDD5C0}
+    .sec-title{font-family:'Oswald',sans-serif;font-size:34px;font-weight:700;color:#1E1008;margin-bottom:6px}
+    .sec-sub{color:#B08070;font-size:13px;margin-bottom:36px}
+    .btn-add{display:inline-flex;align-items:center;gap:6px;padding:8px 18px;background:#C94E1A;color:#fff;border:none;border-radius:3px;font-size:12px;font-weight:600;letter-spacing:.06em;cursor:pointer;font-family:'Inter',sans-serif;transition:background .2s}
+    .btn-add:hover{background:#A83A10}
+    .record-header{display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:12px;margin-bottom:28px}
+    .record-controls{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+    .sum-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:28px}
+    .sum-card{background:#fff;border:1px solid #EDD5C0;padding:18px 22px;border-radius:6px}
+    .sum-lbl{font-size:9px;color:#B08070;letter-spacing:.15em;text-transform:uppercase;margin-bottom:6px}
+    .sum-val{font-family:'Oswald',sans-serif;font-size:24px;font-weight:700;color:#1E1008}
+    .yr-btns{display:flex;gap:8px;flex-wrap:wrap}
+    .yr-btn{padding:5px 14px;border:1px solid #EDD5C0;background:#fff;color:#B08070;font-size:11px;font-weight:600;letter-spacing:.08em;cursor:pointer;transition:all .2s;font-family:'Inter',sans-serif;border-radius:3px}
+    .yr-btn:hover,.yr-btn.active{border-color:#C94E1A;color:#C94E1A;background:#FEF0E8}
+    .rec-table{border:1px solid #EDD5C0;border-radius:6px;overflow:hidden;background:#fff}
+    .rec-thead{background:#FDF6F0;border-bottom:1px solid #EDD5C0}
+    .rec-thead td{padding:12px 18px;font-size:9px;color:#B08070;letter-spacing:.15em;text-transform:uppercase;font-weight:600}
+    .rec-row{border-bottom:1px solid #F5E8DC;transition:background .15s;cursor:pointer}
+    .rec-row:last-child{border-bottom:none}
+    .rec-row:hover{background:#FEF0E8}
+    .rec-row td{padding:14px 18px;font-size:13px;vertical-align:middle}
+    .badge-win{background:#C94E1A;color:#fff;display:inline-block;padding:3px 9px;border-radius:2px;font-size:11px;font-weight:700}
+    .badge-silv{background:#FEF0E8;color:#C94E1A;border:1px solid #E8B898;display:inline-block;padding:3px 9px;border-radius:2px;font-size:11px;font-weight:700}
+    .badge-def{background:#F5EDE8;color:#C0907A;display:inline-block;padding:3px 9px;border-radius:2px;font-size:11px;font-weight:600}
+    .tag{display:inline-block;padding:2px 9px;border-radius:2px;font-size:9px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;background:#FEF0E8;color:#C94E1A}
+    .diary-cards{display:flex;flex-direction:column;gap:12px}
+    .diary-card{border:1px solid #EDD5C0;border-radius:6px;padding:22px;cursor:pointer;transition:border-color .2s,box-shadow .2s,transform .18s;background:#fff}
+    .diary-card:hover{border-color:#C94E1A;box-shadow:0 4px 16px rgba(201,78,26,.08);transform:translateY(-2px)}
+    .diary-meta{display:flex;align-items:center;gap:12px;margin-bottom:10px;flex-wrap:wrap}
+    .diary-title{font-size:17px;font-weight:500;margin-bottom:8px;letter-spacing:-.01em;color:#1E1008}
+    .diary-prev{color:#B08070;font-size:13px;line-height:1.65}
+    .gear-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+    .gear-card{background:#fff;border:1px solid #EDD5C0;border-radius:6px;padding:20px;transition:border-color .2s,box-shadow .2s;cursor:pointer}
+    .gear-card:hover{border-color:#E8A880;box-shadow:0 4px 12px rgba(201,78,26,.07)}
+    .gear-icon{font-size:24px;margin-bottom:12px}
+    .gear-name{font-size:15px;font-weight:500;margin-bottom:6px;color:#1E1008}
+    .gear-stars{color:#C94E1A;font-size:13px;margin-bottom:10px}
+    .gear-rev{color:#B08070;font-size:12px;line-height:1.6}
+    .gallery-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+    .gal-item{aspect-ratio:1;background:#FDF6F0;border:1px solid #EDD5C0;border-radius:6px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;cursor:pointer;transition:border-color .2s,box-shadow .2s}
+    .gal-item:hover{border-color:#E8A880;box-shadow:0 2px 8px rgba(201,78,26,.1)}
+    .gal-icon{font-size:26px;opacity:.3}
+    .gal-lbl{font-size:9px;color:#E0C8B8;letter-spacing:.1em}
+    .footer-wrap{padding:0 40px}
+    footer{border-top:1px solid #EDD5C0;padding:32px 0;display:flex;justify-content:space-between;align-items:center;max-width:900px;margin:0 auto}
+    .ft-logo{font-family:'Oswald',sans-serif;font-size:15px;font-weight:700;letter-spacing:.05em;color:#1E1008}
+    .ft-sub{font-size:11px;color:#B08070}
+    /* 모달 */
+    .modal-overlay{display:none;position:fixed;inset:0;z-index:500;background:rgba(30,16,8,.45);backdrop-filter:blur(4px);align-items:center;justify-content:center;padding:20px}
+    .modal-overlay.open{display:flex}
+    .modal{background:#FDF6F0;border-radius:8px;width:100%;max-width:540px;max-height:90vh;overflow-y:auto;box-shadow:0 24px 64px rgba(30,16,8,.18);animation:modalIn .22s ease}
+    @keyframes modalIn{from{opacity:0;transform:translateY(12px) scale(.98)}to{opacity:1;transform:none}}
+    .modal-head{padding:24px 28px 20px;border-bottom:1px solid #EDD5C0;display:flex;justify-content:space-between;align-items:center}
+    .modal-head-title{font-family:'Oswald',sans-serif;font-size:20px;font-weight:700;color:#1E1008}
+    .modal-close{background:none;border:none;font-size:20px;color:#B08070;cursor:pointer;line-height:1;padding:4px}
+    .modal-close:hover{color:#1E1008}
+    .modal-body{padding:24px 28px;display:flex;flex-direction:column;gap:16px}
+    .modal-foot{padding:16px 28px 24px;display:flex;justify-content:flex-end;gap:10px}
+    .form-group{display:flex;flex-direction:column;gap:6px}
+    .form-label{font-size:10px;font-weight:600;letter-spacing:.15em;text-transform:uppercase;color:#B08070}
+    .form-input,.form-select,.form-textarea{padding:10px 14px;border:1px solid #EDD5C0;border-radius:4px;font-size:13px;font-family:'Inter',sans-serif;color:#1E1008;background:#fff;transition:border-color .15s;outline:none}
+    .form-input:focus,.form-select:focus,.form-textarea:focus{border-color:#C94E1A}
+    .form-textarea{resize:vertical;min-height:120px;line-height:1.65}
+    .form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    .btn-cancel{padding:9px 20px;background:#fff;border:1px solid #EDD5C0;color:#B08070;border-radius:3px;font-size:12px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;transition:all .15s}
+    .btn-cancel:hover{border-color:#C94E1A;color:#C94E1A}
+    .btn-save{padding:9px 24px;background:#C94E1A;border:none;color:#fff;border-radius:3px;font-size:12px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;transition:background .15s}
+    .btn-save:hover{background:#A83A10}
+    .btn-del{padding:9px 24px;background:#c0392b;border:none;color:#fff;border-radius:3px;font-size:12px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif}
+    .btn-del:hover{background:#a93226}
+    .detail-body{padding:28px}
+    .detail-title{font-family:'Oswald',sans-serif;font-size:24px;font-weight:700;color:#1E1008;margin:14px 0 6px;line-height:1.25}
+    .detail-date{font-size:12px;color:#B08070;margin-bottom:22px}
+    .detail-content{font-size:14px;color:#3A2010;line-height:1.9;white-space:pre-wrap}
+    .detail-actions{display:flex;gap:10px;margin-top:28px;padding-top:20px;border-top:1px solid #EDD5C0;justify-content:flex-end}
+    .gal-img-item{aspect-ratio:1;border-radius:6px;overflow:hidden;position:relative;cursor:pointer;border:1px solid #EDD5C0}
+    .gal-img-item img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .3s}
+    .gal-img-item:hover img{transform:scale(1.04)}
+    .gal-img-item:hover .gal-del-btn{opacity:1}
+    .gal-del-btn{position:absolute;top:6px;right:6px;width:24px;height:24px;border-radius:50%;background:rgba(30,16,8,.7);border:none;color:#fff;font-size:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .2s;line-height:1}
+    .gal-add-slot{aspect-ratio:1;background:#FDF6F0;border:2px dashed #EDD5C0;border-radius:6px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;cursor:pointer;transition:border-color .2s,background .2s}
+    .gal-add-slot:hover{border-color:#C94E1A;background:#FEF0E8}
+    .gal-add-slot-icon{font-size:22px;opacity:.35}
+    .gal-add-slot-lbl{font-size:9px;color:#D4A890;letter-spacing:.1em}
+    .empty-state{text-align:center;padding:48px 20px;color:#D4A890;font-size:13px}
+    .empty-icon{font-size:32px;margin-bottom:12px;opacity:.4}
+    .confirm-body{padding:20px 28px}
+    .confirm-msg{font-size:14px;color:#3A2010;line-height:1.6;font-weight:500}
+    .confirm-sub{font-size:12px;color:#B08070;margin-top:4px}
+  </style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="logo" onclick="navTo('home')">Tennissoom</div>
+  <div class="nav-links">
+    <span class="nl active" id="nl-home"    onclick="navTo('home')">Home</span>
+    <span class="nl"        id="nl-record"  onclick="navTo('record')">Record</span>
+    <span class="nl"        id="nl-diary"   onclick="navTo('diary')">Diary</span>
+    <span class="nl"        id="nl-gear"    onclick="navTo('gear')">Others</span>
+    <span class="nl"        id="nl-gallery" onclick="navTo('gallery')">Gallery</span>
+  </div>
+</nav>
+
+<section class="hero" id="home">
+  <div class="court-bg">
+    <div style="position:absolute;inset:12% 12%;border:1px solid rgba(201,78,26,0.07)"></div>
+    <div style="position:absolute;top:36%;left:12%;right:12%;height:1px;background:rgba(201,78,26,0.05)"></div>
+    <div style="position:absolute;bottom:36%;left:12%;right:12%;height:1px;background:rgba(201,78,26,0.05)"></div>
+    <div style="position:absolute;top:12%;bottom:12%;left:50%;width:1px;background:rgba(201,78,26,0.05)"></div>
+    <div style="position:absolute;top:50%;left:28%;right:28%;height:1px;background:rgba(201,78,26,0.05)"></div>
+    <div class="ball-deco" style="top:14%;right:15%;width:90px;height:90px;opacity:.15"></div>
+    <div class="ball-deco" style="bottom:20%;left:10%;width:44px;height:44px;opacity:.10"></div>
+    <div class="ball-deco" style="top:62%;right:9%;width:22px;height:22px;opacity:.12"></div>
+  </div>
+  <div class="hero-content">
+    <h1 class="hero-title">Court<br><em>Diary</em></h1>
+    <p class="hero-sub">서울에서 테니스 치는 Soom의 코트 일지.<br>대회 기록 및 연습 이야기를 담습니다.</p>
+  </div>
+  <div class="scroll-hint"><span>Scroll</span><div class="scroll-line"></div></div>
+</section>
+
+<section class="section" id="record">
+  <div class="set-label">Set 01 — 대회 기록</div>
+  <div class="record-header">
+    <div>
+      <h2 class="sec-title">대회 전적</h2>
+      <p class="sec-sub">출전한 전국대회 기록</p>
+    </div>
+    <div class="record-controls">
+      <div class="yr-btns" id="yr-btns"></div>
+      <button class="btn-add" onclick="openRecordModal(null)">+ 대회 추가</button>
+    </div>
+  </div>
+  <div class="sum-grid" id="sum-grid"></div>
+  <div class="rec-table">
+    <table style="width:100%;border-collapse:collapse">
+      <thead class="rec-thead">
+        <tr><td>날짜</td><td>대회명</td><td>부서</td><td>지역</td><td>성적</td></tr>
+      </thead>
+      <tbody id="rec-tbody"></tbody>
+    </table>
+  </div>
+</section>
+
+<section class="alt-section" id="diary">
+  <div class="alt-inner">
+    <div class="set-label">Set 02 — 테니스 일지</div>
+    <div style="display:flex;justify-content:space-between;align-items:flex-start">
+      <div>
+        <h2 class="sec-title">코트 위 기록들</h2>
+        <p class="sec-sub">대회 후기, 연습 일지, 코트 탐방 에세이</p>
+      </div>
+      <button class="btn-add" onclick="openDiaryModal(null)">+ 일지 작성</button>
+    </div>
+    <div class="diary-cards" id="diary-cards" style="margin-top:8px"></div>
+  </div>
+</section>
+
+<section class="section" id="gear">
+  <div class="set-label">Set 03 — Others</div>
+  <div style="display:flex;justify-content:space-between;align-items:flex-start">
+    <div>
+      <h2 class="sec-title">내가 쓰는 장비들</h2>
+      <p class="sec-sub">라켓, 스트링, 신발 — 직접 써본 솔직한 리뷰</p>
+    </div>
+    <button class="btn-add" onclick="openGearModal(null)">+ 장비 추가</button>
+  </div>
+  <div class="gear-grid" id="gear-grid" style="margin-top:8px"></div>
+</section>
+
+<section class="alt-section" id="gallery">
+  <div class="alt-inner">
+    <div class="set-label">Set 04 — Gallery</div>
+    <div style="display:flex;justify-content:space-between;align-items:flex-start">
+      <div>
+        <h2 class="sec-title">코트의 순간들</h2>
+        <p class="sec-sub">경기 현장과 연습의 기억들</p>
+      </div>
+      <button class="btn-add" onclick="document.getElementById('gal-file-input').click()">+ 사진 추가</button>
+      <input type="file" id="gal-file-input" accept="image/*" multiple style="display:none" onchange="handleGalUpload(event)" />
+    </div>
+    <div class="gallery-grid" id="gal-grid" style="margin-top:8px"></div>
+    <p id="gal-empty-hint" style="text-align:center;color:#E0C8B8;font-size:12px;margin-top:20px;letter-spacing:.05em;display:none">사진을 추가하면 여기에 표시됩니다</p>
+  </div>
+</section>
+
+<div class="footer-wrap">
+  <footer>
+    <div class="ft-logo">Tennissoom</div>
+    <div class="ft-sub">Since 2018</div>
+  </footer>
+</div>
+
+<!-- 모달: 대회 추가/수정 -->
+<div class="modal-overlay" id="modal-record">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-head-title" id="modal-record-title">대회 추가</div>
+      <button class="modal-close" onclick="closeModal('modal-record')">&#x2715;</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">날짜 (YYYY.MM)</label>
+          <input class="form-input" id="rec-date" placeholder="2025.06" maxlength="7" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">지역</label>
+          <input class="form-input" id="rec-loc" placeholder="서울" />
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">대회명</label>
+        <input class="form-input" id="rec-name" placeholder="봄철 전국오픈" />
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">부서</label>
+          <input class="form-input" id="rec-div" value="개나리부" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">성적</label>
+          <select class="form-select" id="rec-round">
+            <option>우승</option><option>준우승</option><option>4강</option>
+            <option>8강</option><option>16강</option><option>32강</option><option>64강</option><option>128강</option><option>예선</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn-cancel" onclick="closeModal('modal-record')">취소</button>
+      <button class="btn-save"   onclick="saveRecord()">저장</button>
+    </div>
+  </div>
+</div>
+
+<!-- 모달: 대회 상세 -->
+<div class="modal-overlay" id="modal-tour-detail">
+  <div class="modal" style="max-width:480px">
+    <div class="modal-head">
+      <div class="modal-head-title" id="tour-detail-name"></div>
+      <button class="modal-close" onclick="closeModal('modal-tour-detail')">&#x2715;</button>
+    </div>
+    <div class="detail-body">
+      <div id="tour-detail-badge" style="margin-bottom:16px"></div>
+      <table style="width:100%;border-collapse:collapse;font-size:13px">
+        <tr style="border-bottom:1px solid #F5E8DC">
+          <td style="padding:10px 0;color:#B08070;width:80px;font-size:11px;letter-spacing:.05em">날짜</td>
+          <td style="padding:10px 0;font-weight:500" id="tour-detail-date"></td>
+        </tr>
+        <tr style="border-bottom:1px solid #F5E8DC">
+          <td style="padding:10px 0;color:#B08070;font-size:11px;letter-spacing:.05em">지역</td>
+          <td style="padding:10px 0" id="tour-detail-loc"></td>
+        </tr>
+        <tr style="border-bottom:1px solid #F5E8DC">
+          <td style="padding:10px 0;color:#B08070;font-size:11px;letter-spacing:.05em">부서</td>
+          <td style="padding:10px 0" id="tour-detail-div"></td>
+        </tr>
+        <tr>
+          <td style="padding:10px 0;color:#B08070;font-size:11px;letter-spacing:.05em">성적</td>
+          <td style="padding:10px 0" id="tour-detail-round"></td>
+        </tr>
+      </table>
+      <div class="detail-actions">
+        <button class="btn-cancel" id="tour-detail-edit-btn">수정</button>
+        <button class="btn-del"    id="tour-detail-del-btn">삭제</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 모달: 일지 작성/수정 -->
+<div class="modal-overlay" id="modal-diary">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-head-title" id="modal-diary-title">일지 작성</div>
+      <button class="modal-close" onclick="closeModal('modal-diary')">&#x2715;</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">날짜 (YYYY.MM.DD)</label>
+          <input class="form-input" id="diary-date" placeholder="2025.06.24" maxlength="10" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">태그</label>
+          <select class="form-select" id="diary-tag">
+            <option value="대회후기">대회후기</option>
+            <option value="연습일지">연습일지</option>
+            <option value="코트탐방">코트탐방</option>
+            <option value="기타">기타</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">제목</label>
+        <input class="form-input" id="diary-title-input" placeholder="오늘의 코트 이야기" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">내용</label>
+        <textarea class="form-textarea" id="diary-content" placeholder="코트에서 있었던 이야기를 자유롭게 적어보세요..." style="min-height:160px"></textarea>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn-cancel" onclick="closeModal('modal-diary')">취소</button>
+      <button class="btn-save"   onclick="saveDiary()">저장</button>
+    </div>
+  </div>
+</div>
+
+<!-- 모달: 일지 상세 -->
+<div class="modal-overlay" id="modal-detail">
+  <div class="modal" style="max-width:580px">
+    <div class="modal-head">
+      <div class="modal-head-title">일지 읽기</div>
+      <button class="modal-close" onclick="closeModal('modal-detail')">&#x2715;</button>
+    </div>
+    <div class="detail-body">
+      <div id="detail-tag"></div>
+      <div class="detail-title"   id="detail-title"></div>
+      <div class="detail-date"    id="detail-date"></div>
+      <div class="detail-content" id="detail-content"></div>
+      <div class="detail-actions">
+        <button class="btn-cancel" id="detail-edit-btn">수정</button>
+        <button class="btn-del"    id="detail-del-btn">삭제</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 모달: 장비 추가/수정 -->
+<div class="modal-overlay" id="modal-gear">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-head-title" id="modal-gear-title">장비 추가</div>
+      <button class="modal-close" onclick="closeModal('modal-gear')">&#x2715;</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">카테고리</label>
+          <select class="form-select" id="gear-cat">
+            <option value="라켓">라켓</option>
+            <option value="스트링">스트링</option>
+            <option value="신발">신발</option>
+            <option value="가방">가방</option>
+            <option value="의류">의류</option>
+            <option value="기타">기타</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">이모지</label>
+          <input class="form-input" id="gear-icon" placeholder="🎾" maxlength="2" />
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">장비명</label>
+        <input class="form-input" id="gear-name" placeholder="Wilson Blade 98 v9" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">별점 (1.0 ~ 5.0)</label>
+        <input class="form-input" id="gear-stars" type="number" min="1" max="5" step="0.5" placeholder="4.5" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">리뷰</label>
+        <textarea class="form-textarea" id="gear-rev" placeholder="직접 써본 솔직한 리뷰를 남겨주세요..." style="min-height:100px"></textarea>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn-cancel" onclick="closeModal('modal-gear')">취소</button>
+      <button class="btn-save"   onclick="saveGear()">저장</button>
+    </div>
+  </div>
+</div>
+
+<!-- 모달: 장비 상세 -->
+<div class="modal-overlay" id="modal-gear-detail">
+  <div class="modal" style="max-width:480px">
+    <div class="modal-head">
+      <div class="modal-head-title" id="gear-detail-name"></div>
+      <button class="modal-close" onclick="closeModal('modal-gear-detail')">&#x2715;</button>
+    </div>
+    <div class="detail-body">
+      <div style="margin-bottom:16px;display:flex;align-items:center;gap:12px">
+        <span id="gear-detail-icon" style="font-size:28px"></span>
+        <div>
+          <div id="gear-detail-cat"></div>
+          <div id="gear-detail-stars" style="color:#C94E1A;font-size:15px;margin-top:4px"></div>
+        </div>
+      </div>
+      <div id="gear-detail-rev" style="font-size:14px;color:#3A2010;line-height:1.8"></div>
+      <div class="detail-actions">
+        <button class="btn-cancel" id="gear-detail-edit-btn">수정</button>
+        <button class="btn-del"    id="gear-detail-del-btn">삭제</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 모달: 사진 뷰어 -->
+<div class="modal-overlay" id="modal-gal-view">
+  <div class="modal" style="max-width:680px;background:#1E1008">
+    <div class="modal-head" style="background:#1E1008;border-bottom:1px solid #3A2010">
+      <div class="modal-head-title" id="gal-view-caption" style="color:#EDD5C0;font-size:15px;font-weight:400;font-family:'Inter',sans-serif"></div>
+      <div style="display:flex;gap:10px;align-items:center">
+        <button class="btn-del" id="gal-view-del-btn" style="padding:6px 16px;font-size:11px">삭제</button>
+        <button class="modal-close" onclick="closeModal('modal-gal-view')" style="color:#B08070">&#x2715;</button>
+      </div>
+    </div>
+    <div style="padding:20px;text-align:center">
+      <img id="gal-view-img" src="" alt="" style="max-width:100%;max-height:60vh;object-fit:contain;border-radius:4px" />
+    </div>
+  </div>
+</div>
+
+<!-- 모달: 삭제 확인 -->
+<div class="modal-overlay" id="modal-confirm">
+  <div class="modal" style="max-width:360px">
+    <div class="modal-head">
+      <div class="modal-head-title">삭제 확인</div>
+      <button class="modal-close" onclick="closeModal('modal-confirm')">&#x2715;</button>
+    </div>
+    <div class="confirm-body">
+      <div class="confirm-msg" id="confirm-msg"></div>
+      <div class="confirm-sub">삭제된 데이터는 복구할 수 없습니다.</div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn-cancel" onclick="closeModal('modal-confirm')">취소</button>
+      <button class="btn-del"    id="confirm-ok-btn">삭제</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const DEFAULT_T=[
+  {id:'t1',year:2025,date:'2025.05',name:'봄철 전국오픈',  div:'개나리부',loc:'서울',round:'우승'  },
+  {id:'t2',year:2025,date:'2025.07',name:'KT배 전국오픈',  div:'개나리부',loc:'수원',round:'16강' },
+  {id:'t3',year:2025,date:'2025.09',name:'서울시협회장배', div:'개나리부',loc:'서울',round:'8강'  },
+  {id:'t4',year:2024,date:'2024.10',name:'가을 전국오픈',  div:'개나리부',loc:'부산',round:'준우승'},
+  {id:'t5',year:2024,date:'2024.07',name:'여름 전국오픈',  div:'개나리부',loc:'대구',round:'32강' },
+  {id:'t6',year:2024,date:'2024.04',name:'테니스코리아배', div:'개나리부',loc:'인천',round:'8강'  }
+];
+const DEFAULT_D=[
+  {id:'d1',date:'2025.05.20',title:'봄철 대회 우승 소감',tag:'대회후기',
+   content:'처음 개나리부 전국대회에서 우승한 날. 결승전에서 상대의 강서브를 리턴으로 이겨낸 순간이 아직도 생생하다. 3시간 가까이 이어진 경기였지만 끝까지 발을 움직인 게 주효했다.'},
+  {id:'d2',date:'2025.08.20',title:'백핸드 크로스 집중 훈련기',tag:'연습일지',
+   content:'요즘 가장 취약한 백핸드 크로스 코트 샷. 매주 화요일과 목요일 2시간씩 드릴만 반복하고 있다. 그립 포지션을 조금 바꿨더니 회전이 확실히 달라졌다.'},
+  {id:'d3',date:'2025.07.15',title:'서울 테니스 코트 순례 — 잠실 편',tag:'코트탐방',
+   content:'잠실 한강공원 코트는 주말 예약이 거의 불가능하다. 하지만 평일 오전에 가면 코트 상태가 최상이다. 하드코트 특유의 바운드가 발리 연습에 딱 맞는 환경.'}
+];
+const DEFAULT_GEAR=[
+  {id:'g1',icon:'🎾',name:'Wilson Blade 98 v9',      cat:'라켓',  stars:4.5,rev:'컨트롤 중심의 플레이어에게 최적. 무게감이 있지만 스트로크 안정감이 탁월하다.'},
+  {id:'g2',icon:'🎾',name:'Babolat Pure Aero Strike', cat:'라켓',  stars:4.0,rev:'스핀 위주 플레이에 유리. 파워가 좋지만 컨트롤 적응에 한 달 정도 걸렸다.'},
+  {id:'g3',icon:'🪡',name:'Luxilon ALU Power 125',    cat:'스트링',stars:5.0,rev:'폴리 스트링의 교과서. 텐션 유지력이 좋고 스핀양이 일정하게 나온다.'},
+  {id:'g4',icon:'👟',name:'Nike Zoom GP Challenge',   cat:'신발',  stars:4.5,rev:'발목 지지력과 쿠셔닝 균형이 좋음. 하드코트에서도 그립이 잘 잡힌다.'}
+];
+function loadG(){const r=localStorage.getItem('ts_g');return r?JSON.parse(r):JSON.parse(JSON.stringify(DEFAULT_GEAR));}
+function saveG(d){localStorage.setItem('ts_g',JSON.stringify(d));}
+const ROUND_RANK=['우승','준우승','4강','8강','16강','32강','64강','128강','예선'];
+function loadT(){const r=localStorage.getItem('ts_t');return r?JSON.parse(r):JSON.parse(JSON.stringify(DEFAULT_T));}
+function saveT(d){localStorage.setItem('ts_t',JSON.stringify(d));}
+function loadD(){const r=localStorage.getItem('ts_d');return r?JSON.parse(r):JSON.parse(JSON.stringify(DEFAULT_D));}
+function saveD(d){localStorage.setItem('ts_d',JSON.stringify(d));}
+function uid(){return '_'+Math.random().toString(36).slice(2,9);}
+function tierOf(r){return r==='우승'?'win':r==='준우승'?'silv':'def';}
+function renderStars(r){const f=Math.floor(r),h=r%1>=0.5?1:0;return'★'.repeat(f)+(h?'½':'')+'\u2606'.repeat(5-f-h);}
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function todayStr(){const d=new Date();return d.getFullYear()+'.'+String(d.getMonth()+1).padStart(2,'0')+'.'+String(d.getDate()).padStart(2,'0');}
+
+let curYear='all';
+function rebuildYrBtns(){
+  const years=[...new Set(loadT().map(t=>t.year))].sort((a,b)=>b-a);
+  document.getElementById('yr-btns').innerHTML=
+    ['all',...years].map(y=>`<button class="yr-btn${String(curYear)===String(y)?' active':''}" onclick="filterYear('${y}')">${y==='all'?'전체':y}</button>`).join('');
+}
+function filterYear(y){curYear=y;rebuildYrBtns();renderRecord();}
+
+function renderRecord(){
+  const all=loadT();
+  const data=curYear==='all'?all:all.filter(t=>String(t.year)===String(curYear));
+  const wins=data.filter(t=>['우승','준우승','4강','8강'].includes(t.round)).length;
+  const best=data.reduce((b,t)=>{const bi=ROUND_RANK.indexOf(b),ti=ROUND_RANK.indexOf(t.round);return(ti!==-1&&(bi===-1||ti<bi))?t.round:b;},null);
+  const bEmoji=best==='우승'?' 🏆':best==='준우승'?' 🥈':best==='4강'?' 🥉':'';
+  document.getElementById('sum-grid').innerHTML=
+    `<div class="sum-card"><div class="sum-lbl">출전</div><div class="sum-val">${data.length}회</div></div>
+     <div class="sum-card"><div class="sum-lbl">입상</div><div class="sum-val">${wins}회</div></div>
+     <div class="sum-card"><div class="sum-lbl">최고 성적</div><div class="sum-val" style="font-size:18px">${best?best+bEmoji:'-'}</div></div>`;
+  const sorted=[...data].sort((a,b)=>b.date.localeCompare(a.date));
+  if(!sorted.length){document.getElementById('rec-tbody').innerHTML=`<tr><td colspan="6"><div class="empty-state"><div class="empty-icon">🎾</div>대회 기록이 없습니다</div></td></tr>`;return;}
+  document.getElementById('rec-tbody').innerHTML=sorted.map(t=>{
+    const tier=tierOf(t.round);
+    return `<tr class="rec-row" onclick="openTournamentDetail('${t.id}')">
+      <td style="color:#B08070">${esc(t.date)}</td>
+      <td style="font-weight:500">${esc(t.name)}${tier==='win'?' 🏆':tier==='silv'?' 🥈':''}</td>
+      <td style="color:#B08070">${esc(t.div)}</td>
+      <td style="color:#B08070">${esc(t.loc)}</td>
+      <td><span class="badge-${tier}">${esc(t.round)}</span></td>
+    </tr>`;
+  }).join('');
+}
+
+let editTId=null;
+function openRecordModal(id){
+  editTId=id||null;
+  document.getElementById('modal-record-title').textContent=id?'대회 수정':'대회 추가';
+  if(id){const t=loadT().find(x=>x.id===id);if(!t)return;
+    document.getElementById('rec-date').value=t.date;
+    document.getElementById('rec-name').value=t.name;
+    document.getElementById('rec-div').value=t.div;
+    document.getElementById('rec-loc').value=t.loc;
+    document.getElementById('rec-round').value=t.round;
+  }else{
+    document.getElementById('rec-date').value='';
+    document.getElementById('rec-name').value='';
+    document.getElementById('rec-div').value='개나리부';
+    document.getElementById('rec-loc').value='';
+    document.getElementById('rec-round').value='8강';
+  }
+  openModal('modal-record');
+}
+function saveRecord(){
+  const date=document.getElementById('rec-date').value.trim();
+  const name=document.getElementById('rec-name').value.trim();
+  const div =document.getElementById('rec-div').value.trim();
+  const loc =document.getElementById('rec-loc').value.trim();
+  const round=document.getElementById('rec-round').value;
+  if(!date||!name||!loc){alert('날짜, 대회명, 지역을 입력해 주세요.');return;}
+  const year=parseInt(date.split('.')[0])||new Date().getFullYear();
+  const all=loadT();
+  if(editTId){const i=all.findIndex(t=>t.id===editTId);if(i!==-1)all[i]={...all[i],date,name,div,loc,round,year};}
+  else{all.push({id:uid(),year,date,name,div,loc,round});}
+  saveT(all);closeModal('modal-record');rebuildYrBtns();renderRecord();
+}
+
+function openTournamentDetail(id){
+  const t=loadT().find(x=>x.id===id);if(!t)return;
+  const tier=tierOf(t.round);
+  const emoji=tier==='win'?' 🏆':tier==='silv'?' 🥈':'';
+  document.getElementById('tour-detail-name').textContent=t.name+emoji;
+  document.getElementById('tour-detail-badge').innerHTML=`<span class="badge-${tier}">${esc(t.round)}</span>`;
+  document.getElementById('tour-detail-date').textContent=t.date;
+  document.getElementById('tour-detail-loc').textContent=t.loc;
+  document.getElementById('tour-detail-div').textContent=t.div;
+  document.getElementById('tour-detail-round').textContent=t.round;
+  document.getElementById('tour-detail-edit-btn').onclick=()=>{closeModal('modal-tour-detail');openRecordModal(id);};
+  document.getElementById('tour-detail-del-btn').onclick=()=>{closeModal('modal-tour-detail');confirmDel('t',id,t.name);};
+  openModal('modal-tour-detail');
+}
+
+function renderDiary(){
+  const data=loadD().sort((a,b)=>b.date.localeCompare(a.date));
+  if(!data.length){document.getElementById('diary-cards').innerHTML=`<div class="empty-state"><div class="empty-icon">📝</div>아직 작성된 일지가 없습니다</div>`;return;}
+  document.getElementById('diary-cards').innerHTML=data.map(p=>
+    `<div class="diary-card" onclick="openDetail('${p.id}')">
+      <div class="diary-meta"><span class="tag">${esc(p.tag)}</span><span style="font-size:12px;color:#B08070">${esc(p.date)}</span></div>
+      <div class="diary-title">${esc(p.title)}</div>
+      <div class="diary-prev">${esc(p.content.slice(0,100))}${p.content.length>100?'…':''}</div>
+    </div>`).join('');
+}
+
+let editDId=null;
+function openDiaryModal(id){
+  editDId=id||null;
+  document.getElementById('modal-diary-title').textContent=id?'일지 수정':'일지 작성';
+  if(id){const p=loadD().find(x=>x.id===id);if(!p)return;
+    document.getElementById('diary-date').value=p.date;
+    document.getElementById('diary-tag').value=p.tag;
+    document.getElementById('diary-title-input').value=p.title;
+    document.getElementById('diary-content').value=p.content;
+  }else{
+    document.getElementById('diary-date').value=todayStr();
+    document.getElementById('diary-tag').value='연습일지';
+    document.getElementById('diary-title-input').value='';
+    document.getElementById('diary-content').value='';
+  }
+  closeModal('modal-detail');
+  openModal('modal-diary');
+}
+function saveDiary(){
+  const date   =document.getElementById('diary-date').value.trim();
+  const tag    =document.getElementById('diary-tag').value;
+  const title  =document.getElementById('diary-title-input').value.trim();
+  const content=document.getElementById('diary-content').value.trim();
+  if(!date||!title||!content){alert('날짜, 제목, 내용을 모두 입력해 주세요.');return;}
+  const all=loadD();
+  if(editDId){const i=all.findIndex(p=>p.id===editDId);if(i!==-1)all[i]={...all[i],date,tag,title,content};}
+  else{all.push({id:uid(),date,tag,title,content});}
+  saveD(all);closeModal('modal-diary');renderDiary();
+}
+
+function openDetail(id){
+  const p=loadD().find(x=>x.id===id);if(!p)return;
+  document.getElementById('detail-tag').innerHTML=`<span class="tag">${esc(p.tag)}</span>`;
+  document.getElementById('detail-title').textContent=p.title;
+  document.getElementById('detail-date').textContent=p.date;
+  document.getElementById('detail-content').textContent=p.content;
+  document.getElementById('detail-edit-btn').onclick=()=>{closeModal('modal-detail');openDiaryModal(id);};
+  document.getElementById('detail-del-btn').onclick=()=>{closeModal('modal-detail');confirmDel('d',id,p.title);};
+  openModal('modal-detail');
+}
+
+function confirmDel(type,id,name){
+  document.getElementById('confirm-msg').textContent='"'+name+'"을(를) 삭제할까요?';
+  document.getElementById('confirm-ok-btn').onclick=()=>{
+    if(type==='t'){const a=loadT().filter(t=>t.id!==id);saveT(a);rebuildYrBtns();renderRecord();}
+    else if(type==='g'){const a=loadG().filter(g=>g.id!==id);saveG(a);renderGear();}
+    else          {const a=loadD().filter(p=>p.id!==id);saveD(a);renderDiary();}
+    closeModal('modal-confirm');
+  };
+  openModal('modal-confirm');
+}
+
+function openModal(id){document.getElementById(id).classList.add('open');document.body.style.overflow='hidden';}
+function closeModal(id){document.getElementById(id).classList.remove('open');if(!document.querySelector('.modal-overlay.open'))document.body.style.overflow='';}
+document.querySelectorAll('.modal-overlay').forEach(o=>o.addEventListener('click',e=>{if(e.target===o)closeModal(o.id);}));
+
+function renderGear(){
+  const data=loadG();
+  if(!data.length){document.getElementById('gear-grid').innerHTML=`<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">🎾</div>장비를 추가해보세요</div>`;return;}
+  document.getElementById('gear-grid').innerHTML=data.map(g=>
+    `<div class="gear-card" onclick="openGearDetail('${g.id}')">
+      <div class="gear-icon">${g.icon}</div>
+      <div style="margin-bottom:6px"><span class="tag">${esc(g.cat)}</span></div>
+      <div class="gear-name">${esc(g.name)}</div>
+      <div class="gear-stars">${renderStars(g.stars)}</div>
+      <div class="gear-rev">${esc(g.rev)}</div>
+    </div>`).join('');
+}
+
+let editGId=null;
+function openGearModal(id){
+  editGId=id||null;
+  document.getElementById('modal-gear-title').textContent=id?'장비 수정':'장비 추가';
+  if(id){const g=loadG().find(x=>x.id===id);if(!g)return;
+    document.getElementById('gear-cat').value=g.cat;
+    document.getElementById('gear-icon').value=g.icon;
+    document.getElementById('gear-name').value=g.name;
+    document.getElementById('gear-stars').value=g.stars;
+    document.getElementById('gear-rev').value=g.rev;
+  }else{
+    document.getElementById('gear-cat').value='라켓';
+    document.getElementById('gear-icon').value='🎾';
+    document.getElementById('gear-name').value='';
+    document.getElementById('gear-stars').value='';
+    document.getElementById('gear-rev').value='';
+  }
+  closeModal('modal-gear-detail');
+  openModal('modal-gear');
+}
+function saveGear(){
+  const cat  =document.getElementById('gear-cat').value;
+  const icon =document.getElementById('gear-icon').value.trim()||'🎾';
+  const name =document.getElementById('gear-name').value.trim();
+  const stars=parseFloat(document.getElementById('gear-stars').value);
+  const rev  =document.getElementById('gear-rev').value.trim();
+  if(!name||isNaN(stars)||stars<1||stars>5){alert('장비명과 별점(1~5)을 입력해 주세요.');return;}
+  const all=loadG();
+  if(editGId){const i=all.findIndex(g=>g.id===editGId);if(i!==-1)all[i]={...all[i],cat,icon,name,stars,rev};}
+  else{all.push({id:uid(),cat,icon,name,stars,rev});}
+  saveG(all);closeModal('modal-gear');renderGear();
+}
+function openGearDetail(id){
+  const g=loadG().find(x=>x.id===id);if(!g)return;
+  document.getElementById('gear-detail-name').textContent=g.name;
+  document.getElementById('gear-detail-icon').textContent=g.icon;
+  document.getElementById('gear-detail-cat').innerHTML=`<span class="tag">${esc(g.cat)}</span>`;
+  document.getElementById('gear-detail-stars').textContent=renderStars(g.stars)+' '+g.stars;
+  document.getElementById('gear-detail-rev').textContent=g.rev;
+  document.getElementById('gear-detail-edit-btn').onclick=()=>{closeModal('modal-gear-detail');openGearModal(id);};
+  document.getElementById('gear-detail-del-btn').onclick=()=>{closeModal('modal-gear-detail');confirmDel('g',id,g.name);};
+  openModal('modal-gear-detail');
+}
+function loadGal(){const r=localStorage.getItem('ts_gal');return r?JSON.parse(r):[];}
+function saveGal(d){localStorage.setItem('ts_gal',JSON.stringify(d));}
+
+function renderGallery(){
+  const photos=loadGal();
+  const hint=document.getElementById('gal-empty-hint');
+  if(!photos.length){
+    document.getElementById('gal-grid').innerHTML=
+      `<div class="gal-add-slot" onclick="document.getElementById('gal-file-input').click()">
+        <div class="gal-add-slot-icon">📷</div>
+        <div class="gal-add-slot-lbl">사진 추가</div>
+      </div>`;
+    hint.style.display='none'; return;
+  }
+  hint.style.display='none';
+  document.getElementById('gal-grid').innerHTML=
+    photos.map(p=>`
+      <div class="gal-img-item" onclick="openGalView('${p.id}')">
+        <img src="${p.src}" alt="${esc(p.caption||'')}" loading="lazy"/>
+        <button class="gal-del-btn" onclick="event.stopPropagation();delGalPhoto('${p.id}')">&#x2715;</button>
+      </div>`).join('')+
+    `<div class="gal-add-slot" onclick="document.getElementById('gal-file-input').click()">
+      <div class="gal-add-slot-icon">＋</div>
+      <div class="gal-add-slot-lbl">추가</div>
+    </div>`;
+}
+
+function handleGalUpload(e){
+  const files=[...e.target.files];
+  if(!files.length)return;
+  const photos=loadGal();
+  let loaded=0;
+  files.forEach(file=>{
+    const reader=new FileReader();
+    reader.onload=ev=>{
+      photos.push({id:uid(),src:ev.target.result,caption:file.name.replace(/\.[^.]+$/,''),date:todayStr()});
+      loaded++;
+      if(loaded===files.length){saveGal(photos);renderGallery();}
+    };
+    reader.readAsDataURL(file);
+  });
+  e.target.value='';
+}
+
+function openGalView(id){
+  const p=loadGal().find(x=>x.id===id);if(!p)return;
+  document.getElementById('gal-view-img').src=p.src;
+  document.getElementById('gal-view-caption').textContent=p.caption||'';
+  document.getElementById('gal-view-del-btn').onclick=()=>{delGalPhoto(id);closeModal('modal-gal-view');};
+  openModal('modal-gal-view');
+}
+
+function delGalPhoto(id){
+  const all=loadGal().filter(p=>p.id!==id);
+  saveGal(all);renderGallery();
+}
+function navTo(id){
+  document.getElementById(id).scrollIntoView({behavior:'smooth'});
+  document.querySelectorAll('.nl').forEach(el=>el.classList.remove('active'));
+  document.getElementById('nl-'+id).classList.add('active');
+}
+
+rebuildYrBtns();renderRecord();renderDiary();renderGear();renderGallery();
+</script>
+</body>
+</html>
